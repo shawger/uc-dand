@@ -24,7 +24,7 @@
 # 
 # ### 1.1 Code
 
-# In[15]:
+# In[147]:
 
 # Start of code. This block is for imports, global variables, common functions and any setup needed for the investigation
 
@@ -38,12 +38,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 #Set some common formatting
-matplotlib.rcParams.update({'font.size': 14})
+matplotlib.rcParams.update({'font.size': 20})
+matplotlib.rcParams.update({'figure.titlesize': 24})
+matplotlib.rcParams.update({'axes.labelsize': 20})
+
 matplotlib.rcParams.update({'figure.figsize': (18,12)})
 
+
 #For some reason setting 'font.size' does not effect the ytick and xtick font sizes.
-matplotlib.rcParams.update({'ytick.labelsize': 14})
-matplotlib.rcParams.update({'xtick.labelsize': 14})
+matplotlib.rcParams.update({'ytick.labelsize': 20})
+matplotlib.rcParams.update({'xtick.labelsize': 20})
 
 #Set some color maps to keep common color schemes
 sexColors = ['limegreen','dodgerblue']
@@ -67,7 +71,7 @@ def make_autopct(values):
 # 
 # Data loaded from trian.csv.
 
-# In[16]:
+# In[148]:
 
 # Open the csv and load into pandas dataframe
 
@@ -80,7 +84,7 @@ df = pd.read_csv('train.csv')
 # - Passenger class
 # - If the passenger has siblings or spouses (this comes later)
 
-# In[17]:
+# In[149]:
 
 #Use the pandas.isnull function to find any missing data
 nullSex = df[pd.isnull(df['Sex'])]['PassengerId'].count()
@@ -100,7 +104,7 @@ print "Rows with no sex: %d\nRows with no pClass: %d\nRows with no SibSp: %d" % 
 # 
 # As sex is a boolean thing (at least in this example) the only useful question we can answer is male vs female:
 
-# In[18]:
+# In[150]:
 
 sexNumbers = df.groupby('Sex')['Sex'].count()
 
@@ -119,7 +123,7 @@ sexNumbers.plot.pie(subplots=True,
 # 
 # There are 3 classes (1, 2, and 3) so lets see how many passengers in each group and what is that as a percent.
 
-# In[19]:
+# In[151]:
 
 classNumbers = df.groupby('Pclass')['Pclass'].count()
 
@@ -142,7 +146,7 @@ classNumbers.plot.pie(subplots=True,
 # #### 2.3.1 Class Vs Sex on the Titanic
 # For this we can break the dataset into 2 groups (male and female) then look at how the makeup of the class is.
 
-# In[20]:
+# In[152]:
 
 # Group passenegers into male and female, and then group by class and count the number of passengers in the groups
 femaleVsClass = df[df['Sex'] == 'female'].groupby(['Pclass'])['Pclass'].count()
@@ -169,7 +173,7 @@ sexVsClass.plot.pie(subplots=True,
 # 
 # For this analysis take a look at how many males and females in each class have siblings or spouses onboard. Include the breakdown of all males and females with sibling or spouses in all class for reference.
 
-# In[21]:
+# In[153]:
 
 # Find the amount of males and females in all classes and group by the sibsp (sibblings or spouses on board)
 # Since there are a different number of males and females in all classes, compare the results using % of total
@@ -216,28 +220,27 @@ female3rdClass = df[(df['Sex'] == 'female') & (df['Pclass'] == 3)].groupby(['Sib
 # Combine the males and females in third class to display on same graph
 sexVs3rdClass = pd.concat([female3rdClass, male3rdClass], axis=1, keys=['females %','males %'])
 
-
 # Display the results
 print pd.concat([sexVsAllClass, sexVs1stClass,sexVs2ndClass,sexVs3rdClass], axis=1, keys=['All','First','Second','Third'])
 a1 = sexVsAllClass.plot.bar(color=sexColors)
-a1.set_title('All Passengers')
-a1.set_xlabel('Number of Siblings or Spouses')
-a1.set_ylabel('% Of Total')
+a1.set_title('All Passengers',fontsize=24)
+a1.set_xlabel('Number of Siblings or Spouses',fontsize=20)
+a1.set_ylabel('% Of Total',fontsize=20)
 
 a2 = sexVs1stClass.plot.bar(color=sexColors)
-a2.set_title('1st Class Passengers')
-a2.set_xlabel('Number of Siblings or Spouses')
-a2.set_ylabel('% Of Total')
+a2.set_title('1st Class Passengers',fontsize=24)
+a2.set_xlabel('Number of Siblings or Spouses',fontsize=20)
+a2.set_ylabel('% Of Total',fontsize=20)
 
 a3 = sexVs2ndClass.plot.bar(color=sexColors)
-a3.set_title('2nd Class Passengers')
-a3.set_xlabel('Number of Siblings or Spouses')
-a3.set_ylabel('% Of Total')
+a3.set_title('2nd Class Passengers',fontsize=24)
+a3.set_xlabel('Number of Siblings or Spouses',fontsize=20)
+a3.set_ylabel('% Of Total',fontsize=20)
 
 a4 = sexVs3rdClass.plot.bar(color=sexColors)
-a4.set_title('3rd Class Passengers')
-a4.set_xlabel('Number of Siblings or Spouses')
-a4.set_ylabel('% Of Total')
+a4.set_title('3rd Class Passengers',fontsize=24)
+a4.set_xlabel('Number of Siblings or Spouses',fontsize=20)
+a4.set_ylabel('% Of Total',fontsize=20)
 
 
 # Class does not seem to make much of a difference when it comes to the amount of men and women with siblings or spouses aboard.  The % of men aboard with no spouses of siblings aboard is higher then the % of women. It would suggest that men were more likely to travel alone then women regardless of class. 
@@ -265,7 +268,7 @@ a4.set_ylabel('% Of Total')
 # 
 # The data has already been loaded in section 2.1.
 
-# In[22]:
+# In[154]:
 
 #Use the pandas.isnull function to find any missing data
 nullSex = df[pd.isnull(df['Sex'])]['PassengerId'].count()
@@ -278,7 +281,7 @@ print "Rows with no Sex: %d\nRows with no Age: %d\nRows with no Survived: %d\nTo
 
 # It appears some rows with passenger age is missing. For this investigation, rows with missing age information will be discarded.
 
-# In[23]:
+# In[155]:
 
 # Remove rows with a null age (blank age) from the dataframe
 df = df[pd.notnull(df['Age'])]
@@ -291,7 +294,7 @@ print "Rows with no Age: %d\nTotal: %d" % (nullAge,totalRows)
 
 # For readability, add a column in the dataframe call 'Lived or Died' which has a string representation of whether a passenger survived.
 
-# In[24]:
+# In[156]:
 
 # Add a column called 'Live or Died' with a string representation of the Survivedd column (which is 0 or 1)
 d = {0: 'Died', 1: 'Lived'}
@@ -304,7 +307,7 @@ df['Lived or Died'] = df['Survived'].map(d)
 # 
 # #### 3.2.1 Passenger Survival
 
-# In[25]:
+# In[157]:
 
 # Use group by to find numbers of passengers how survived. Break down into all, men and women
 
@@ -329,7 +332,7 @@ survivedNumbers.plot.pie(subplots=True,
 
 # #### 3.2.2 Passenger Age
 
-# In[26]:
+# In[158]:
 
 # Describe the datasets in one chart using a concat of the describes of all, males and females.
 print pd.concat([df['Age'].describe(), 
@@ -339,21 +342,21 @@ print pd.concat([df['Age'].describe(),
 
 # Show histograms of the total population, then for males and females sepperatly
 df['Age'].hist()
-plt.title('Histogram of Passenger Age for all Passengers on the Titanic')
-plt.xlabel("Age")
-plt.ylabel("Frequency")
+plt.title('Histogram of Passenger Age for all Passengers on the Titanic',fontsize=24)
+plt.xlabel("Age",fontsize=20)
+plt.ylabel("Frequency",fontsize=20)
 plt.show()
 
 df[df['Sex']=='female']['Age'].hist(color=sexColors[0])
-plt.title('Histogram of Females on Titanic')
-plt.xlabel("Age")
-plt.ylabel("Frequency")
+plt.title('Histogram of Females on Titanic',fontsize=24)
+plt.xlabel("Age",fontsize=20)
+plt.ylabel("Frequency",fontsize=20)
 plt.show()
 
 df[df['Sex']=='male']['Age'].hist(color=sexColors[1])
-plt.title('Histogram of Males on Titanic')
-plt.xlabel("Age")
-plt.ylabel("Frequency")
+plt.title('Histogram of Males on Titanic',fontsize=24)
+plt.xlabel("Age",fontsize=20)
+plt.ylabel("Frequency",fontsize=20)
 plt.show()
 
 
@@ -366,11 +369,13 @@ plt.show()
 # 
 # Use logistic regression to estimate the survival chances of a person at a certain age.
 
-# In[27]:
+# In[165]:
 
 #Use seaborn to create graphs that use logistic regression to predict the survival % at different ages
 #Show both population as a whole and split up males and females.
-
+sns.set_context("notebook", font_scale=3)
+sns.set_style("darkgrid")
+                
 g = sns.lmplot(x='Age', 
                y='Survived', 
                data=df, 
@@ -411,8 +416,3 @@ g.set(xlim=(0,80),title='Survival Rate of Passengers, Seperated by Sex, Using Lo
 # 
 # - http://pandas.pydata.org/pandas-docs/stable/visualization.html - For information on how to draw graphs.
 # - Whoever reviewed my first attempt and provided the code for make_autopct().
-
-# In[ ]:
-
-
-
