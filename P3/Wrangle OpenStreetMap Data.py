@@ -27,7 +27,7 @@
 # 
 # The investigation will be conducted using python and mongodb. For the python, not all code will be shown in this notebook and can be found in the file osmToMongo.py in the project folder.
 # 
-# The project folder is hosted on github [here](here).
+# The project folder is hosted on github [here](https://github.com/shawger/uc-dand).
 # 
 # 
 # ## Source Data
