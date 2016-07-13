@@ -212,7 +212,7 @@ div#notebook {
 </li>
 </ol>
 <p>The investigation will be conducted using python and mongodb. For the python, not all code will be shown in this notebook and can be found in the file osmToMongo.py in the project folder.</p>
-<p>The project folder is hosted on github <a href="here">here</a>.</p>
+<p>The project folder is hosted on github <a href="https://github.com/shawger/uc-dand">here</a>.</p>
 <h2 id="Source-Data">Source Data<a class="anchor-link" href="#Source-Data">&#182;</a></h2><p>The data was downloaded with a pre-made xml osm file from MapZen. <a href="https://s3.amazonaws.com/metro-extracts.mapzen.com/calgary_canada.osm.bz2">Here</a> is the link.</p>
 <p>In the project folder, the file is calgary_canada.osm.</p>
 <p>For testing, a sample of calgary_canada.osm was made using createTestFile.py, which was provided as part of this project.</p>
@@ -637,7 +637,7 @@ Anything without 3 numbers and 3 letters not in that order is not valid.</p>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[8]:</div>
+<div class="prompt input_prompt">In&nbsp;[7]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="c1">#Use the collstats fucntion to get the file size and nunmber of elemements</span>
@@ -681,7 +681,7 @@ Anything without 3 numbers and 3 letters not in that order is not valid.</p>
 <pre>
 Data Summary
 ==================================
-Storage Size: 70680576 bytes
+Storage Size: 70725632 bytes
 Total number of elements: 835823 
 Total number of nodes: 745943 
 Total number of ways: 89838 
@@ -706,7 +706,7 @@ Total number of unique users: 864
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[10]:</div>
+<div class="prompt input_prompt">In&nbsp;[8]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="c1">#Query how many non null cuisines sorted</span>
@@ -738,7 +738,7 @@ Total number of unique users: 864
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>
-Top 10 cuisine types)
+Top 10 cuisine types
 coffee_shop:199
 burger:79
 pizza:50
@@ -770,7 +770,7 @@ mexican:15
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[12]:</div>
+<div class="prompt input_prompt">In&nbsp;[9]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="c1">#Find nodes where cuisine is coffee_shop, then group and count the users (where there is a user) then sort</span>
@@ -803,7 +803,7 @@ mexican:15
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>
-Top 5 coffee lovers (the full list in coffeeLovers.txt)
+Top 5 coffee lovers
 AKC:65
 andrewpmk:30
 JamesBadger:10
@@ -829,7 +829,7 @@ abDoug:7
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[15]:</div>
+<div class="prompt input_prompt">In&nbsp;[10]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="c1">#Find nodes where user is AKC, then group and count the cuisines (where there is a user) then sort</span>
@@ -914,7 +914,7 @@ international:1
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="prompt input_prompt">In&nbsp;[11]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="c1">#Find all coffee shops with names. Group by name and report and sort the count</span>
@@ -987,7 +987,7 @@ The Second Cup:2
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[25]:</div>
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="c1">#Find node where cuisine is coffee_shop and that have name, address and postal code</span>
@@ -1048,9 +1048,23 @@ name: Tim Hortons, phone: +1-403-255-4886, postal code: T2H 0L3
 <li><p>Other then coffee, Calgarians really like burgers and pizza. I wonder how this ranks against the rest of North America. My guess is very similar.</p>
 </li>
 </ul>
+<h2 id="References">References<a class="anchor-link" href="#References">&#182;</a></h2><p><a href="https://docs.mongodb.com/manual/reference/">https://docs.mongodb.com/manual/reference/</a> - Used for information on mongodb</p>
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span> 
+</pre></div>
+
+</div>
+</div>
+</div>
+
 </div>
     </div>
   </div>
