@@ -364,7 +364,7 @@ for r in results:
 # 
 # Answered using the following queries:
 
-# In[8]:
+# In[7]:
 
 #Use the collstats fucntion to get the file size and nunmber of elemements
 stats = db.command("collstats", "maps")
@@ -398,7 +398,7 @@ print "Total number of unique users: %d " % uniqueUsers
 # 
 # Answered using the following query
 
-# In[10]:
+# In[8]:
 
 #Query how many non null cuisines sorted
 pipeline = [{"$match" : {"cuisine":{"$exists":{"$ne":"null"}}}},
@@ -424,7 +424,7 @@ for result in results:
 # 
 # Who likes coffee the most? Let's find out!
 
-# In[12]:
+# In[9]:
 
 #Find nodes where cuisine is coffee_shop, then group and count the users (where there is a user) then sort
 pipeline = [{"$match" : {"cuisine":"coffee_shop"}},
@@ -447,7 +447,7 @@ for result in results:
 
 # AKC seems to like coffee a lot. What else do they like?
 
-# In[15]:
+# In[10]:
 
 #Find nodes where user is AKC, then group and count the cuisines (where there is a user) then sort
 pipeline = [{"$match" : {"created.user":"AKC"}},
@@ -467,7 +467,7 @@ for result in results:
 # 
 # Group by the name where cuisine is coffee_shop
 
-# In[19]:
+# In[11]:
 
 #Find all coffee shops with names. Group by name and report and sort the count
 pipeline = [{"$match" : {"cuisine":"coffee_shop"}},
@@ -493,7 +493,7 @@ for result in results:
 
 # ### What are the names, phone numbers and postal codes of all the coffee shops?
 
-# In[25]:
+# In[12]:
 
 #Find node where cuisine is coffee_shop and that have name, address and postal code
 pipeline = [{"$match" : {"cuisine":"coffee_shop"}},
@@ -519,3 +519,12 @@ for r in results:
 # - Other then coffee, Calgarians really like burgers and pizza. I wonder how this ranks against the rest of North America. My guess is very similar.
 # 
 # 
+# ## References
+# 
+# https://docs.mongodb.com/manual/reference/ - Used for information on mongodb
+# 
+
+# In[ ]:
+
+
+
