@@ -1,0 +1,4 @@
+Calgary Canada
+Chosen because I used to live there.
+
+https://s3.amazonaws.com/metro-extracts.mapzen.com/calgary_canada.osm.bz2
