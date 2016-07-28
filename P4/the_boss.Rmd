@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE,out.width='900px', dpi=200, message = FALSE, warnings = FALSE)
+knitr::opts_chunk$set(echo = FALSE,out.width='800px', dpi=100, message = FALSE, warnings = FALSE)
 options( warn = -1 )
 options(width = 900)
 ```
