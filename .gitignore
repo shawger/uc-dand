@@ -1,2 +1,5 @@
 #Generated Files
 *Working/
+*Data/
+*.Rhistory
+*.RData

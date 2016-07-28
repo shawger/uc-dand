@@ -1,0 +1,815 @@
+---
+title: "Born in the USA"
+author: "Nick Shaw"
+date: "July 27, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,out.width='900px', dpi=200, message = FALSE, warnings = FALSE)
+options( warn = -1 )
+options(width = 900)
+```
+
+# Born In the USA
+
+## Introduction
+
+Unlike the Boss, I was not Born in USA or have ever lived in the USA, but thanks to another 'boss', American politics and the ridiculous things that American politicians (both elected representatives and ones that will hopefully never be elected to public office) are saying it is impossible to ignore.
+
+Of interest is what affect people not Born in the USA are having on USA. Is immigration really holding USA back from being.... Great Again?
+
+To measure how someone adds to the 'greatness' of USA income will be used as the primary metric. Is income the best/only metric? No. But income adds to the GDP and pays taxes. To add a little flavor I will also look at education levels because education should also add to 'greatness' of a country.
+
+I guess I should state straight away (if it's not clear already), before starting this I don't think immigration is a bad thing, and it probably helps a country... I guess we will find out.
+
+## Data
+
+Data used is from the American Community Survey for 2013. I found the data on [Kaggle](https://www.kaggle.com/census/2013-american-community-survey).
+
+The big metric I will use is someone's yearly income (WAOB) which means that I'm only going to be looking at folks between 18 and 65.
+
+The key for the data can be found in [key.txt](key.txt).
+
+Some factors I will look at are:
+- Current residence
+- Place of birth
+- Race
+- Amount of Education
+
+And more!
+
+```{r echo=FALSE, results="hide"}
+library(data.table)
+
+#Select only some columns
+cols <- c("SEX",
+          "WAGP",
+          "AGEP",
+          "NATIVITY",
+          "WAOB",
+          "ST",
+          "CIT",
+          "SCHL",
+          "DECADE",
+          "YOEP",
+          "RAC1P",
+          "ENG",
+          "WKHP",
+          "POBP")
+
+#Load data from the 2 inputs
+data_a <- fread("Data/ss13pusa.csv", select = cols)
+data_b <- fread("Data/ss13pusb.csv", select = cols)
+
+#Combine data
+data <- subset(rbind(data_a, data_b),
+               (!is.na(NATIVITY) | !is.na(WAOB)) & AGEP >= 18 & AGEP <= 65)
+
+#Drop unneded data
+rm (data_a)
+rm (data_b)
+rm (cols)
+
+
+#Read factor labels from files
+ST.names <- readLines("keys/ST.txt")
+RAC1P.names <- readLines("keys/RAC1P.txt")
+NATIVITY.names <- readLines("keys/NATIVITY.txt")
+WAOB.names <- readLines("keys/WAOB.txt")
+DECADE.names <- readLines("keys/DECADE.txt")
+SEX.names <- readLines("keys/SEX.txt")
+CIT.names <- readLines("keys/CIT.txt")
+SCHL.names <- readLines("keys/SCHL.txt")
+SCHL.COMB.names <- readLines("keys/SCHL_COMB.txt")
+ENG.names <- readLines("keys/ENG.txt")
+POBP.names <- readLines("keys/POBP.txt")
+
+#Reduce groups in eductation
+#1-15 are all different categories that did not finish high school
+ReduceSCHL <- function(x){
+    if(x < 16){
+      1
+    }
+    else
+    {
+      x-14
+    }
+}
+
+data$SCHL.COMB <- sapply(data$SCHL, FUN = ReduceSCHL)
+
+#Factorize fields and apply labels.
+data$ST <- factor(data$ST, 
+                  labels=ST.names)
+
+data$RAC1P <- factor(data$RAC1P,
+                     labels=RAC1P.names)
+
+data$NATIVITY <- factor(data$NATIVITY,
+                        labels=NATIVITY.names)
+
+data$WAOB <- factor(data$WAOB, 
+                    labels=WAOB.names)
+
+data$DECADE <- factor(data$DECADE, 
+                      ordered = is.ordered(data$DECADE),
+                      labels=DECADE.names)
+
+data$SEX <- factor(data$SEX, 
+                   labels=SEX.names)
+
+data$CIT <- factor(data$CIT, 
+                   labels=CIT.names)
+
+data$SCHL <- factor(data$SCHL, 
+                    ordered = is.ordered(data$SCHL), 
+                    labels=SCHL.names)
+
+data$SCHL.COMB <- factor(data$SCHL.COMB, 
+                         ordered = is.ordered(data$SCHL.COMB),
+                         labels=SCHL.COMB.names)
+
+data$ENG <- factor(data$ENG, 
+                   ordered = is.ordered(data$ENG),
+                   labels=ENG.names)
+
+data$POBP <- factor(data$POBP, labels=POBP.names)
+
+#Drop the label arrays
+rm(ST.names)
+rm(RAC1P.names)
+rm(NATIVITY.names)
+rm(WAOB.names)
+rm(DECADE.names)
+rm(SEX.names)
+rm(CIT.names)
+rm(SCHL.names)
+rm(SCHL.COMB.names)
+rm(ENG.names)
+rm(POBP.names)
+```
+
+## Population Overview
+
+Before we get into where people are from, lets look at some aspects of the population as a whole.
+
+### Age of Population
+
+```{r echo=FALSE}
+library(ggplot2)
+
+ggplot(data=data,
+       aes(AGEP)) +
+  geom_histogram(bins=48)
+
+summary(data$AGEP)
+```
+
+**Plot Notes**
+
+- 65-18 + 1 = 48 bins (1 for every age). Originally I had it at 47, but made 1 bin way to big...
+
+**Observations**
+
+- Population is generally (baby boomers), but there does seem to be a resurgence of young people. That could because they haven't had time to die yet?
+
+### Sex of Population
+
+```{r echo=FALSE}
+library(ggplot2)
+ggplot(data=data,
+       aes(SEX)) +
+  geom_bar()
+
+summary(data$SEX)
+```
+
+**Plot Notes**
+
+N/A
+
+**Observations**
+
+- Slightly more females than males in the USA.
+
+## Metrics
+
+Take a look at how the population does as a whole when it comes to income and education.
+
+### Income of Population
+
+```{r echo=FALSE}
+library(ggplot2)
+
+ggplot(data=data,
+       aes(log10(WAGP+1))) +
+  geom_histogram()
+
+summary(data$WAGP)
+```
+
+**Plot Notes**
+
+- Looks exponential (ei lots of people not making money) so use log10 of income (+1 to make sure the 0$ people are included). That looks more... normal.
+
+**Observations**
+
+- Lots of people making 0$ per year. Students, unemployed or other? It is probably worth investigating, but for now, people who are making 0$ are not helping bring greatness, and that should be included in the study.
+- I guess this is the whole 1% controlling all the wealth or whatever. But yes. A lot of people making a lot of money and a few people making heaps.
+
+### Education
+
+How well are Americans educated?
+
+```{r echo=FALSE}
+library(ggplot2)
+ggplot(data=data,
+       aes(SCHL)) +
+  geom_bar() +
+  theme(axis.text.x=element_text(angle=45, 
+                                 hjust=1))
+```
+
+**Plot Notes**
+
+- For better readibility I rotated the x axis labels
+
+**Observations**
+
+- The biggest groups are finished high school and started, but did not complete post-secondary.
+- It occurs to me that if you don't have at least grade 12, then it's all the same. This is why I added a new field (SCHL.COMB) where I combined all the people that don't have highschool.
+
+Lets see that again!
+
+```{r echo=FALSE}
+library(ggplot2)
+ggplot(data=data,
+       aes(SCHL.COMB)) +
+  geom_bar() +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+```
+
+### Education vs Income
+
+```{r echo=FALSE}
+library(ggplot2)
+ggplot(data=subset(data,
+                   !is.na(SCHL) & !is.na(WAGP)),
+       aes(x=SCHL.COMB,y=WAGP)) +
+  stat_summary(fun.y=mean,geom="bar") +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+```
+
+**Plot Notes**
+
+- Used SCHL.COMB rather than SCHL because SCHL.COMB groups people who did not finish high school.
+
+**Observations**
+
+- Not a surprise, but people with more education make more money.
+
+### Income vs Age
+
+```{r echo=FALSE}
+library(ggplot2)
+
+data.sample <- data[sample(1:nrow(data), 
+                           nrow(data)/100,
+                           replace=FALSE),]
+
+ggplot(data=data.sample,
+       aes(x=AGEP,y=log10(WAGP+1))) +
+  geom_jitter(aes(color='orange', alpha=1/10000)) +
+  geom_smooth()
+```
+
+**Plot Notes**
+
+- Took a random sample of 1/100 the whole set to reduce drawing time.
+
+**Observations**
+
+- Not so much a pattern here. People between 20 and 25 earn less (people going to school), but between 25 and 50 it is steady then after 50 it starts dropping (retirement, sickness).
+
+### Income vs Age (no $0)
+
+```{r echo=FALSE}
+library(ggplot2)
+library(gridExtra)
+
+data.sample <- data[sample(1:nrow(data),
+                           nrow(data)/100,
+                           replace=FALSE),]
+
+p1 <- ggplot(data=subset(data.sample,WAGP>0),
+       aes(x=AGEP,y=log10(WAGP+1))) +
+  geom_jitter(aes(color='orange', alpha=1/10000)) +
+  geom_smooth() +
+  ggtitle("More then 0$")
+
+p2 <- ggplot(data=subset(data.sample,WAGP==0),
+       aes(AGEP)) +
+  geom_histogram(bins=48) +
+  ggtitle("Making 0$")
+
+grid.arrange(p1,p2,ncol=1)
+```
+
+**Plot Notes**
+
+- Took a random sample of 1/100 the whole set to reduce drawing time.
+
+**Observations**
+
+- More or less the same pattern. On the trend before (age vs wage) the amount of the youngest and oldest people making 0$ explains why there is a sharp drop on those ends.
+- For people not making 0$, wages increase until 25-30, then stay pretty flat until 65.
+
+## Immigrant Investigation
+
+First lets look at some details. How many people where not Born in the USA, where are they from, what race are they? What is their education?
+
+### Immigrant Population
+
+I guess we'd better look at this. How many immigrants are there in the USA.
+
+```{r echo=FALSE}
+library(ggplot2)
+library(plyr)
+
+ggplot(data=data,
+       aes(NATIVITY)) +
+  geom_bar(aes(y = (..count..)/sum(..count..)))
+
+summary(data$NATIVITY)
+```
+
+**Plot Notes**
+
+- This makes more sense as a % of total pop.
+
+**Observations**
+
+- People Born in the USA outnumber the people not born in the USA quite a lot, although at around 13% it is not insignificant.
+
+### Immigrant Place of Birth
+
+Where are these people from?
+
+```{r echo=FALSE}
+library(ggplot2)
+
+ggplot(data=subset(data,NATIVITY!='Native'),
+       aes(WAOB)) +
+  geom_bar() +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+```
+
+**Plot Notes**
+
+N/A
+
+**Observations**
+
+- Latin America and Asia make up most of the immigrants.
+
+### Immigrant Place of birth... more in depth
+
+What countries are these people from
+
+```{r echo=FALSE}
+library(ggplot2)
+library(dplyr)
+
+#Make a new dataframe grouping by world area of birth and place of birth
+data.groups.POBP <- subset(data, 
+                           NATIVITY!='Native') %>%
+  group_by(WAOB,POBP) %>%
+  summarise(WAGP.mean = mean(WAGP),
+            n = n()) %>%
+  arrange(-n)
+
+#Find the top 5 in all the world areas of birth
+data.groups.POBP.reduced <- by(data.groups.POBP,
+                               data.groups.POBP$WAOB, head, n=5)
+
+data.groups.POBP.reduced <- Reduce(rbind, 
+                                   data.groups.POBP.reduced)
+
+ggplot(data = data.groups.POBP.reduced,
+       aes(x = POBP, y = n)) +
+  geom_bar(stat = "identity") +
+  facet_wrap( ~ WAOB , scales="free", ncol = 3) +
+  theme(axis.text.x=element_text(angle=25, hjust=1))
+```
+
+**Plot Notes**
+
+- WAGP_mean wage will be used later.
+
+**Observations**
+
+- A huge majority of the people are from Mexico! It is a little funny that Mexico is with Latin America rather than North America. I guess it is a part of both.
+- The country of origin for Asians is much more diverse.
+
+### Immigrant Race
+
+```{r echo=FALSE}
+ggplot(data=subset(data,NATIVITY!='Native'),
+       aes(RAC1P)) +
+  geom_bar() +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+```
+
+**Plot Notes**
+
+N/A
+
+**Observations**
+
+- The large majority are 'white'. This is likely from all the people coming from latin America.
+- 'Some Other Race' also makes up a good number of people, it would be interesting to know what race they are.
+
+### Race, Natives vs Non Natives
+
+```{r echo=FALSE}
+ggplot(data=data,
+       aes(RAC1P)) +
+  geom_bar(aes(color=NATIVITY)) +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+```
+
+**Plot Notes**
+
+N/A
+
+**Observations**
+
+- A good amount of Asians in the USA are non-Native. Also, the white population has a lot of immigrants. Maybe we can see where they are from.
+
+### Citizenship Status of Non-Natives
+
+```{r echo=FALSE}
+library(ggplot2)
+
+ggplot(data=subset(data,NATIVITY!='Native'),
+       aes(CIT)) +
+  geom_bar() +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+```
+
+**Plot Notes**
+
+N/A
+
+**Observations**
+
+- Slightly more people that have not become citizens yet (too bad they can't vote....)
+
+### Arrival Decade of Non-Natives
+
+```{r echo=FALSE}
+library(ggplot2)
+
+ggplot(data=subset(data,NATIVITY!='Native'),
+       aes(DECADE)) +
+  geom_bar() +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+```
+
+**Plot Notes**
+
+N/A
+
+**Observations**
+
+- More have come recently. Part of this trend will be that the older someone is the more likely they are to die, and no longer be a stat on this plot.
+
+### Non Native Income
+
+The meat of this whole thing!
+
+```{r echo=FALSE}
+library(ggplot2)
+library(gridExtra)
+
+p1 <- ggplot(data=subset(data,NATIVITY=='Native'),
+       aes(log10(WAGP+1))) +
+  geom_histogram() +
+  ggtitle("Native")
+
+p2 <- ggplot(data=subset(data,NATIVITY!='Native'),
+       aes(log10(WAGP+1))) +
+  geom_histogram() +
+  ggtitle("Non Native")
+
+p3 <- ggplot(data=data,
+       aes(log10(WAGP+1))) +
+  geom_histogram(aes(color=NATIVITY))
+
+grid.arrange(p1,p2,p3,ncol=1)
+
+```
+
+**Plot Notes**
+
+- From before, we know graphing income using log10 makes more sense
+
+**Observations**
+
+- Non-natives have a better distribution than natives. I mean that more non-natives are to the right, meaning that they are earning more.
+
+Maybe a box plot can tell more!
+
+### Non Native Income Box Plot
+
+```{r echo=FALSE}
+library(ggplot2)
+
+ggplot(data = data,
+       aes(x = NATIVITY, y = log10(WAGP+1))) +
+  geom_boxplot()
+
+```
+
+**Plot Notes**
+
+- From before, we know graphing income using log10 makes more sense.
+- I tried removing people making 0 money but it doesn't change the chart much.
+
+**Observations**
+
+- These actually look very similar (with or without the 0 values removed). It seems foreign workers add just as much as native ones to USA!
+
+### People Making 0$. Natives vs Non-Natives
+
+I want to see a breakdown of % of people making no money
+
+```{r echo=FALSE}
+library(ggplot2)
+library(gridExtra)
+
+p1 <- ggplot(data=data,
+       aes(NATIVITY)) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  scale_y_continuous(limits = c(0, 1)) +
+  ggtitle("Population")
+
+p2 <- ggplot(data=subset(data,WAGP == 0),
+       aes(NATIVITY)) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  scale_y_continuous(limits = c(0, 1)) +
+  ggtitle("Population Making 0$")
+
+grid.arrange(p1,p2,ncol=2)
+
+cat("Non Native % of Total Pop: ", 
+    nrow(subset(data,NATIVITY!='Native'))/nrow(data))
+cat("Non Native % of 0$ Earning Pop: ", 
+    nrow(subset(data,NATIVITY!='Native' & WAGP==0))/nrow(subset(data,WAGP==0)))
+```
+
+**Plot Notes**
+
+N/A
+
+**Observations**
+
+- Again, being an immigrant or not does not seem to affect if a person is earning 0$ or not.. Immigrants do have slightly more people making 0$.
+
+### Does Where an Immigrant is From Matter?
+
+Look at the mean income for non-natives for the top 5 countries where non-natives come from for each area.
+
+```{r echo=FALSE}
+ggplot(data = data.groups.POBP.reduced,
+       aes(x = POBP, y = WAGP.mean)) +
+  geom_bar(stat = "identity") +
+  facet_wrap( ~ WAOB , scales="free_x", ncol = 3) +
+  theme(axis.text.x=element_text(angle=25, hjust=1))
+```
+
+**Plot Notes**
+
+N/A
+
+**Observations**
+
+- Although Mexicans represent the biggest group of non-natives, they have one of the lowest mean incomes.
+- Clearly being from an English speaking country is a big advantage in the USA. The top groups include the UK, South Africa, Canada, Australia, New Zealand and India.
+
+### Education of Immigrants
+
+Earlier we saw how education affected a persons income. Let's see what the education levels of immigrants looks like vs education levels of natives
+
+```{r echo=FALSE}
+library(ggplot2)
+ggplot(data=subset(data,NATIVITY!='Native'),
+       aes(SCHL.COMB)) +
+  geom_bar() +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+```
+
+**Plot Notes**
+
+N/A
+
+**Observations**
+
+- A lot of immigrants with little education.
+- This isn't a super helpful plot. Next one will compare rates of immigrants vs natives
+
+### Education Immigrants vs Natives
+
+```{r echo=FALSE}
+library(ggplot2)
+library(dplyr)
+
+data.groups.edu <- subset(data,!is.na(SCHL.COMB)) %>%
+  group_by(SCHL.COMB) %>%
+  summarise(NATIVE.ratio = sum(NATIVITY!='Native')/
+              (sum(NATIVITY=='Native')+sum(NATIVITY!='Native')),
+            n = n())  %>%
+  arrange(SCHL.COMB)
+
+ggplot(data = data.groups.edu,
+       aes(x = SCHL.COMB, y = NATIVE.ratio)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x=element_text(angle=45, hjust=1)) +
+  geom_hline(aes(yintercept = nrow(subset(data,NATIVITY!='Native'))/
+                   (nrow(subset(data,NATIVITY=='Native'))+
+                      nrow(subset(data,NATIVITY!='Native')))))
+```
+
+**Plot Notes**
+
+- Added H line that represents the % of immigrants (of working age) in the USA
+
+**Observations**
+
+- Immigrants are way over represented in not completing high school. I wonder if maybe some of this has to do with them not getting credit for it in the USA??
+
+- Immigrants are also over-represented in immigrants with PHDs. This probably has to do with a) having a PHD makes immigration easier and b) USA has world class Universities and companies which likely attract PHDs from all over.
+
+### Heat Map of Immigrant Rate on Education and Income
+
+```{r echo=FALSE}
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+
+#Make some Bins
+data.makingMoney <- subset(data,WAGP >= 20000)
+data.makingMoney$WAGP.BINS.MEAN <- ave(data.makingMoney$WAGP, cut(log10(data.makingMoney$WAGP + 1),30), FUN=mean)
+
+#Make a new grouped dataset
+data.groups.wage <- data.makingMoney %>%
+  group_by(WAGP.BINS.MEAN,SCHL.COMB) %>%
+  summarise(WAGP.mean = mean(WAGP),
+            NATIVE.ratio = sum(NATIVITY!='Native')/
+              (sum(NATIVITY=='Native')+sum(NATIVITY!='Native')),
+    n = n()) %>%
+  arrange(WAGP.BINS.MEAN)
+
+#Plot the results
+ggplot(data=data.groups.wage,
+       aes(x=SCHL.COMB,
+           y=factor(WAGP.BINS.MEAN),
+           fill=NATIVE.ratio)) +
+  geom_tile() +
+  theme(axis.text.x=element_text(angle=30, hjust=1))
+```
+
+**Plot Notes**
+
+N/A
+
+**Observations**
+
+- Once again, we can see that a lot of immigrants have no high school.
+- The graph seems to get a little lighter going towards the top right, meaning there are a lot of immigrants in the high earning and high education regions.
+- Immigrants with no education seem to do at least as good (or better) than natives with no education.
+
+## Final Plots and Summary
+
+### Plot 1: Education Vs Income
+
+```{r echo=FALSE}
+library(ggplot2)
+ggplot(data=subset(data, !is.na(SCHL) & !is.na(WAGP)),
+       aes(x=SCHL.COMB,y=WAGP,fill=SCHL.COMB)) +
+  stat_summary(fun.y=mean,geom="bar") +
+  theme(axis.text.x=element_text(angle=25, hjust=1)) +
+  ggtitle("Average Income at Education Levels") +
+  scale_y_continuous(name = "Average Yearly Income (USD)") +
+  scale_x_discrete(name = "Education Level") +
+  guides(fill=FALSE)
+```
+
+This plot demonstrates how education affects income in the USA.
+
+School levels are ordered left to right, and there is a very clear trend that shows the more education a person has the more income they make.
+
+- No high school is a significant disadvantage.
+- A Bachelors degree provides a significant boost to people with no bachelors.
+- Professionals and PhDs make the most, which really should not be all that surprising.
+
+I wanted to demonstrate a link between income and education, so I could examine the education levels of immigrants and see how that affected their incomes once in the USA.
+
+### Plot 2: Income Levels of Immigrants
+
+```{r echo=FALSE}
+ggplot(data = data.groups.POBP.reduced,
+       aes(x = POBP, y = WAGP.mean/1000,fill=log10(n+1))) +
+  geom_bar(stat = "identity") +
+  facet_wrap( ~ WAOB , scales="free_x", ncol = 3) +
+  theme(axis.text.x=element_text(angle=25, hjust=1)) +
+  ggtitle("Average Income of Immigrants from Different Countries") +
+  scale_y_continuous(name = "Average Yearly Income (USD/1000)") +
+  scale_x_discrete(name = "Place of Birth") +
+  scale_fill_continuous(guide = guide_legend(title = "Number\nof People"), breaks=c(2,3,4), labels=c("10","100",">1000"))
+```
+
+This plot shows the average income of immigrants coming from different countries. It also shows the amount of people from each color (using shading).
+
+From the plot a few things stand out:
+
+- People from English-speaking countries make the most.
+- People from Mexico (which forms the largest immigrant population) make close to the least.
+- For non-English countries, Europeans make the most.
+
+### Plot 3: Income Levels Vs Education Levels of Immigrants
+
+```{r echo=FALSE}
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+
+#Make some Bins
+data.makingMoney <- subset(data,WAGP >= 20000)
+data.makingMoney$WAGP.BINS.MEAN <- ave(data.makingMoney$WAGP, cut(log10(data.makingMoney$WAGP + 1),20), FUN=mean)
+
+data.makingMoney$WAGP.BINS.MEAN <- round(data.makingMoney$WAGP.BINS.MEAN/1000)
+
+
+#Make a new grouped dataset
+data.groups.wage <- data.makingMoney %>%
+  group_by(WAGP.BINS.MEAN,SCHL.COMB) %>%
+  summarise(WAGP.mean = mean(WAGP),
+            NATIVE.ratio = sum(NATIVITY!='Native')/(sum(NATIVITY=='Native')+sum(NATIVITY!='Native')),
+    n = n()) %>%
+  arrange(WAGP.BINS.MEAN)
+
+#Plot the results
+ggplot(data=data.groups.wage,
+       aes(x=SCHL.COMB,y=factor(WAGP.BINS.MEAN),fill=NATIVE.ratio)) +
+  geom_tile() +
+  theme(axis.text.x=element_text(angle=30, hjust=1)) +
+  scale_fill_continuous(guide = guide_legend(
+                                title = "% of pop\nis not\nnative"),
+                        low = 'white', 
+                        high = 'orange') +
+  scale_y_discrete(name = "Average Yearly Income (USD/1000)") +
+  scale_x_discrete(name = "Education Level") +
+  ggtitle("Income Levels Vs Education Levels of Immigrants")
+```
+
+The heat map shows the density of immigrants when grouped by income and education level.
+
+Interestingly groups with large immigrant populations show up close to the borders of the map.
+
+- The left side is very dark showing that a good portion of the people with no high school education are immigrants. It also shows that there are immigrants in the groups with little education but are making a lot of money.
+- The graph is darker towards the top meaning that the highest earning groups contain more immigrants.
+- The graph is darker towards the right, and this shows the high number of immigrants who are highly educated.
+- The middle is the lightest. I guess this means that the poor and uneducated, rich or very well educated are coming to USA while all the people in the middle are staying home.
+
+## Final Thoughts
+
+It looks like immigration (when viewed from income and education) is both a good and a bad thing. They receive people with little education and who do not make a lot of income (so add less to GDP and tax revenue) but also people with good educations and who make a lot of money.
+
+There was a lot not considered here so there is no sense jumping to any conclusions. This report on this data does not tell us why someone is not earning any money, does not include illegal immigrants and a whole lot of other factors. Seems it is a complicated question.
+
+## Reflection
+
+I did a lot of searching around to find a data set. At first, I tried some hockey data, but the data I wanted was turning out to be hard to scrap from the website (it was using jscript to load data) so I gave up and went to kaggle to find some data.
+
+Luckily the kaggle data is very nice to work with. I really didn't do much cleaning, except for putting the names back in for different factors (in this script).
+
+**Challenges**
+
+- Asking the right questions. It is really really easy to carried away here. There is so much to look at, so I found it difficult to focus on one topic. Once I learned all the things R can do, I wanted to make all kinds of fun plots. I think I let the scope get really out of control.
+- R is new to me so learning some of this was a bit of a challenge, but at least it was fun.
+
+**Success**
+
+- With R and ggplot, it is pretty easy (once you know the syntax) to put what you imagine onto a page.
+
+**Future Work**
+
+- Oh... So much! I'd like to look at where the immigrants moved to (what States) and put it on a map.
+- It would be interesting to see if the amount of time someone has been in the USA affects their salary.
+- Looking how this data changes over time would be very neat too. (Reports from different years)

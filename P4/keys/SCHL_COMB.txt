@@ -1,0 +1,10 @@
+No High School
+High School Diploma
+GED
+< 1 Year College 
+> 1 Year College
+Associate's degree
+Bachelor's degree
+Master's degree
+Professional degree
+Doctorate degree
